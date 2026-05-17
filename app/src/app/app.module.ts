@@ -157,6 +157,7 @@ import { RecruiterRegisterComponent } from './components/recruiter-register/recr
 import { SummitSignupComponent } from './components/summit-signup/summit-signup.component';
 import { SummitLandingComponent } from './summit-landing/summit-landing.component';
 import { SummitWelcomeComponent } from './summit-landing/summit-welcome.component';
+import { FaqChatbotComponent } from './components/faq-chatbot/faq-chatbot.component';
 
 @NgModule({
   declarations: [
@@ -262,6 +263,7 @@ import { SummitWelcomeComponent } from './summit-landing/summit-welcome.componen
     SummitSignupComponent,
     SummitLandingComponent,
     SummitWelcomeComponent,
+    FaqChatbotComponent,
   ],
   imports: [
     BrowserModule,

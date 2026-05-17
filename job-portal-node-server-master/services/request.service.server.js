@@ -1,6 +1,7 @@
 module.exports = function (app) {
     const Request = require('../models/contact-Requests/request.model.server');
     const Contact = require('../models/contact-Requests/contact.model.server');
+    const SupportRequest = require('../models/support-request/support-request.model.server');
     const nodemailer = require('nodemailer');
 
 // Email transporter setup
@@ -124,6 +125,61 @@ app.post('/api/contact', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'An error occurred while processing your message. Please try again later.'
+    });
+  }
+});
+
+// Chatbot Escalation Endpoint
+app.post('/api/chatbot/escalate', async (req, res) => {
+  try {
+    const { question, name, email } = req.body;
+
+    // a. Validate
+    if (!question || !name || !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'question, name, and email are required.',
+      });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address.',
+      });
+    }
+
+    // b. Save to DB — must succeed for a 200
+    const doc = new SupportRequest({
+      question: question.trim(),
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+    });
+    await doc.save();
+
+    // c. Best-effort email to sales team
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to: 'info@hiyrnow.in',
+        subject: `Chatbot escalation from ${name}`,
+        html: `<h2>Unanswered chatbot question</h2>
+               <p><strong>From:</strong> ${name} &lt;${email}&gt;</p>
+               <p><strong>Question:</strong> ${question}</p>
+               <p><em>Submitted: ${new Date().toLocaleString()}</em></p>`,
+        replyTo: email,
+      });
+    } catch (emailErr) {
+      console.error('Chatbot escalation email failed (non-fatal):', emailErr);
+    }
+
+    // d. Respond
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error saving support request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred while saving your request.',
     });
   }
 });

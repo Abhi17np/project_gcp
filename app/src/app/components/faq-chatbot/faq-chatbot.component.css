@@ -1,0 +1,6 @@
+/* Tailwind handles all visual styling.
+   Only scroll-snap behaviour and line-clamp polyfill needed here. */
+
+:host {
+  display: contents;
+}
